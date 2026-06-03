@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Truth as a Trajectory (TaT): modeling LLM inference as a dynamical trajectory of layer-wise displacements to detect reasoning validity with strong cross-task generalization.">
+  <meta name="keywords" content="LLM explainability, mechanistic interpretability, linear probing, trajectory analysis, reasoning, transformers">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Truth as a Trajectory: What Internal Representations Reveal About LLM Reasoning</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="http://hamed-d.github.io/">
+        <span class="icon"><i class="fas fa-home"></i></span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+
+          <!-- Venue badge -->
+          <p class="is-size-5" style="margin-bottom: 0.5rem;">
+            <span class="tag is-warning is-medium" style="font-weight:bold; font-size:0.9rem; padding: 0.5em 1em;">
+              &#127942;&nbsp; ACL 2025 &nbsp;&middot;&nbsp; Oral Presentation
+            </span>
+          </p>
+
+          <h1 class="title is-1 publication-title" style="margin-top: 1rem;">
+            Truth as a Trajectory: What Internal Representations Reveal About
+            Large Language Model Reasoning
+          </h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="http://hamed-d.github.io/">Hamed Damirchi</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://github.com/Mezosky">Ignacio Meza De la Jara</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              Ehsan Abbasnejad<sup>2</sup>,
+            </span>
+            <span class="author-block">
+              Afshar Shamsi<sup>3</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://zzhang.org/">Zhen Zhang</a><sup>1,4</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://javenshi.org/">Javen Shi</a><sup>1,4</sup>
+            </span>
+          </div>
+
+          <div class="is-size-6 publication-authors" style="margin-top: 0.5rem;">
+            <span class="author-block"><sup>1</sup>Australian Institute for Machine Learning, Adelaide University &nbsp;&nbsp;</span>
+            <span class="author-block"><sup>2</sup>Monash University &nbsp;&nbsp;</span>
+            <span class="author-block"><sup>3</sup>Concordia University &nbsp;&nbsp;</span>
+            <span class="author-block"><sup>4</sup>Responsible AI Research Centre, Australia</span>
+          </div>
+
+          <div class="column has-text-centered" style="margin-top: 1rem;">
+            <div class="publication-links">
+
+              <!-- PDF -->
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2603.01326"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper</span>
+                </a>
+              </span>
+
+              <!-- arXiv -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2603.01326"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="ai ai-arxiv"></i></span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+
+              <!-- Code -->
+              <span class="link-block">
+                <a href="https://github.com/hamed-d/truth-as-a-trajectory"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
+                </a>
+              </span>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== TEASER ==================== -->
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <figure class="image">
+        <img src="./static/images/teaser.svg"
+             alt="TaT teaser: UMAP trajectories of correct (green, smooth) vs incorrect (red, jagged) LLM predictions."
+             style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);">
+      </figure>
+      <h2 class="subtitle has-text-centered" style="margin-top: 1.2rem;">
+        <span class="tat">TaT</span> reveals structure beyond static embeddings.
+        Layerwise hidden states plotted as trajectories in activation space show that
+        <strong style="color:#27ae60;">correct generations</strong> follow smoother paths,
+        while <strong style="color:#e74c3c;">incorrect ones</strong> exhibit sharp deviations.
+        Modeling entire trajectories, rather than isolated layer states,
+        distinguishes valid from spurious reasoning.
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== ABSTRACT ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Existing explainability methods for Large Language Models (LLMs) typically treat hidden
+            states as static points in activation space, assuming that correct and incorrect inferences
+            can be separated using representations from an individual layer. However, these activations
+            are saturated with polysemantic features, leading to linear probes learning surface-level
+            lexical patterns rather than underlying reasoning structures.
+          </p>
+          <p>
+            We introduce <span class="tat">Truth as a Trajectory (TaT)</span>, which models the
+            transformer inference as an unfolded trajectory of iterative refinements, shifting analysis
+            from static activations to layer-wise geometric displacement. By analyzing displacement of
+            representations across layers, <span class="tat">TaT</span> uncovers geometric invariants
+            that distinguish valid reasoning from spurious behavior.
+          </p>
+          <p>
+            We evaluate <span class="tat">TaT</span> across dense and Mixture-of-Experts (MoE)
+            architectures on benchmarks spanning commonsense reasoning, question answering, and
+            toxicity detection. Without access to the activations themselves and using only
+            <em>changes</em> in activations across layers, we show that <span class="tat">TaT</span>
+            effectively mitigates reliance on static lexical confounds, outperforming conventional
+            probing, and establishes trajectory analysis as a complementary perspective on LLM
+            explainability.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== CONTRIBUTIONS ==================== -->
+<section class="section" style="background-color: #fafafa; padding-top: 2rem; padding-bottom: 2.5rem;">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Contributions</h2>
+    <div class="columns is-centered" style="margin-top: 1rem;">
+
+      <div class="column is-one-third">
+        <div class="contribution-card">
+          <p class="icon-large">&#128200;</p>
+          <h3 class="title is-5" style="color:#6c63ff;">Trajectory-based Explainability</h3>
+          <p class="is-size-6">
+            We introduce <span class="tat">TaT</span>, which models LLM inference as a dynamical
+            process unfolding across layers and tokens, capturing the continuous geometric evolution
+            of reasoning rather than focusing on individual layers.
+          </p>
+        </div>
+      </div>
+
+      <div class="column is-one-third">
+        <div class="contribution-card green">
+          <p class="icon-large">&#128209;</p>
+          <h3 class="title is-5" style="color:#27ae60;">Cross-task Geometric Invariants</h3>
+          <p class="is-size-6">
+            By analyzing layer-wise <em>displacement</em> vectors rather than activations themselves,
+            we mitigate reliance on static lexical features and expose trajectory-level structure
+            unobservable to linear probes.
+          </p>
+        </div>
+      </div>
+
+      <div class="column is-one-third">
+        <div class="contribution-card orange">
+          <p class="icon-large">&#128293;</p>
+          <h3 class="title is-5" style="color:#e67e22;">Behavior Detection</h3>
+          <p class="is-size-6">
+            We demonstrate that trajectory analysis extends to complex behavioral properties such as
+            toxicity. <span class="tat">TaT</span> significantly outperforms linear probes in
+            distinguishing meaningful context from toxic intent, validating its utility for reliable
+            model monitoring.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== METHOD ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Method</h2>
+
+    <div class="content has-text-justified">
+      <p>
+        Standard probing methods select a single layer and fit a linear classifier to the raw
+        activations. This approach conflates <em>what</em> a model encodes at a given depth
+        (token identity, lexical content) with <em>how</em> representations are being updated.
+        <span class="tat">TaT</span> addresses this by shifting the analysis object from
+        static activation vectors to <strong>layer-wise displacement vectors</strong>.
+      </p>
+
+      <div class="highlight-box">
+        <p style="margin:0; font-size: 1rem;">
+          For each token <em>t</em> at each layer transition
+          <em>&#8467;</em>, we compute the residual update
+          <em>d<sub>t,&#8467;</sub> = h<sub>t,&#8467;+1</sub> &minus; h<sub>t,&#8467;</sub></em>.
+          These displacement vectors isolate the model&rsquo;s active refinement
+          process, specifically when a feature is being <em>written to</em> rather than merely
+          <em>stored</em>. The full displacement sequence across all tokens and layers is
+          then processed by a lightweight <strong>LSTM classifier</strong> that learns the geometric
+          signature of valid reasoning.
+        </p>
+      </div>
+    </div>
+
+    <figure class="image" style="margin-top: 1.5rem;">
+      <img src="./static/images/method_overview.svg"
+           alt="TaT method overview: input, transformer, trajectory extraction, displacement computation, LSTM classifier"
+           class="method-image">
+    </figure>
+    <p class="has-text-centered is-size-7" style="margin-top: 0.5rem; color: #777;">
+      <strong>Figure 2.</strong> <span class="tat">TaT</span> pipeline.
+      (1) Prompt + candidate continuation is passed through a frozen LLM.
+      (2) All layer activations are extracted.
+      (3) An unrolled trajectory grid T &isin; &#8477;<sup>M&times;d</sup> is formed.
+      (4) Layer-wise displacements are computed to remove static lexical content.
+      (5) An LSTM classifies the trajectory as valid or invalid reasoning.
+    </p>
+
+    <div class="content has-text-justified" style="margin-top: 1.5rem;">
+      <h3 class="title is-5">Why Displacement?</h3>
+      <p>
+        Raw activations are dominated by high-magnitude, persistent components encoding token and
+        prompt identity. By taking the inter-layer difference, we attenuate this static background
+        and isolate the residual update <em>f<sub>&#8467;</sub>(h<sub>t,&#8467;</sub>)</em>.
+        Because element-wise non-linearities in the transformer constrain updates to a consistent
+        reference frame (<em>Residual Alignment</em>), displacements precisely signal when the
+        model is actively writing to a feature, separating the <em>mechanics</em> of
+        reasoning from the <em>semantics</em> of memory.
+      </p>
+
+      <h3 class="title is-5">Why LSTM?</h3>
+      <p>
+        We explored scalar kinematic descriptors (velocity, acceleration, curvature, arc length)
+        inspired by the transformer-as-dynamical-system literature. While velocity carries a
+        predictive signal, no single descriptor generalizes consistently. An LSTM over the full
+        displacement sequence captures the non-linear structural invariants that scalar measures
+        miss, with negligible computational overhead (<strong>0.06%</strong> additional
+        parameters and <strong>0.12%</strong> additional memory relative to the base LLM forward pass).
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== EXPERIMENTS ==================== -->
+<section class="section" style="background-color: #fafafa;">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Experiments</h2>
+
+    <!-- ---- Cross-task generalization ---- -->
+    <h3 class="title is-4" style="margin-top: 1.5rem;">Cross-task Generalization</h3>
+    <div class="content has-text-justified">
+      <p>
+        We train a <span class="tat">TaT</span> classifier (and a linear probe baseline) on each
+        of 9 reasoning benchmarks, then evaluate on all others without any fine-tuning.
+        We report results for <strong>Llama-3.1-8B</strong> and <strong>Qwen2.5-14B</strong>.
+        A strong OOD average indicates the method learns a transferable geometric signature of
+        reasoning validity rather than task-specific lexical confounds.
+      </p>
+    </div>
+
+    <div class="table-container" style="overflow-x: auto;">
+      <table class="table is-bordered is-striped is-hoverable results-table" style="width:100%; font-size:0.82rem;">
+        <thead>
+          <tr>
+            <th rowspan="2" style="vertical-align:middle;">Train Set</th>
+            <th rowspan="2" style="vertical-align:middle;">Method</th>
+            <th colspan="9" style="text-align:center;">Evaluation Dataset</th>
+            <th rowspan="2" style="vertical-align:middle;">Avg</th>
+            <th rowspan="2" style="vertical-align:middle;">ID Acc.</th>
+            <th rowspan="2" style="vertical-align:middle;">OOD Avg.</th>
+          </tr>
+          <tr>
+            <th>ARC-C</th><th>ARC-E</th><th>OpenQA</th><th>BoolQ</th>
+            <th>Hellaswag</th><th>CosQA</th><th>SiQA</th><th>ComQA</th><th>StoryCloze</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Base model rows -->
+          <tr>
+            <td colspan="2" style="background:#f5f5f5; font-weight:bold;">Zero-shot (Llama-3.1-8B)</td>
+            <td>50.1</td><td>78.5</td><td>62.4</td><td>74.7</td>
+            <td>57.4</td><td>81.7</td><td>65.2</td><td>62.4</td><td>78.8</td>
+            <td>67.9</td><td>N/A</td><td>N/A</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="background:#f5f5f5; font-weight:bold;">Few-shot (Llama-3.1-8B)</td>
+            <td>65.3</td><td>84.3</td><td>67.0</td><td>83.8</td>
+            <td>76.8</td><td>82.0</td><td>67.7</td><td>71.1</td><td>83.1</td>
+            <td>75.7</td><td>N/A</td><td>N/A</td>
+          </tr>
+          <!-- ARC-C train -->
+          <tr>
+            <td rowspan="2"><strong>ARC-C</strong></td>
+            <td>Linear Probe</td>
+            <td>75.32</td><td>80.09</td><td>78.60</td><td>55.48</td>
+            <td>70.35</td><td>73.34</td><td>65.47</td><td>74.59</td><td>66.01</td>
+            <td>71.03</td><td>75.32</td><td>70.49</td>
+          </tr>
+          <tr class="tat-row">
+            <td><strong>TaT (Ours)</strong></td>
+            <td class="best">82.17</td><td class="best">85.31</td><td>73.60</td><td class="best">96.91</td>
+            <td>73.89</td><td>74.24</td><td class="best">75.49</td><td>72.48</td><td class="best">82.58</td>
+            <td class="best">79.63</td><td class="best">82.17</td><td class="best">79.31</td>
+          </tr>
+          <!-- ARC-E train -->
+          <tr>
+            <td rowspan="2"><strong>ARC-E</strong></td>
+            <td>Linear Probe</td>
+            <td>75.55</td><td>83.99</td><td>80.95</td><td>58.82</td>
+            <td>71.07</td><td>66.83</td><td>66.60</td><td>78.55</td><td>69.62</td>
+            <td>72.44</td><td>83.99</td><td>71.00</td>
+          </tr>
+          <tr class="tat-row">
+            <td><strong>TaT (Ours)</strong></td>
+            <td>73.81</td><td class="best">89.10</td><td>77.20</td><td class="best">78.56</td>
+            <td class="best">79.19</td><td class="best">75.08</td><td>60.85</td><td class="best">71.09</td>
+            <td class="best">94.98</td>
+            <td class="best">77.76</td><td class="best">89.10</td><td class="best">76.34</td>
+          </tr>
+          <!-- OpenQA train -->
+          <tr>
+            <td rowspan="2"><strong>OpenQA</strong></td>
+            <td>Linear Probe</td>
+            <td>66.42</td><td>69.44</td><td>83.15</td><td>56.79</td>
+            <td>70.26</td><td>61.53</td><td>65.47</td><td>73.01</td><td>57.94</td>
+            <td>67.11</td><td>83.15</td><td>65.11</td>
+          </tr>
+          <tr class="tat-row">
+            <td><strong>TaT (Ours)</strong></td>
+            <td class="best">78.41</td><td class="best">87.12</td><td class="best">90.80</td><td class="best">89.85</td>
+            <td>56.50</td><td class="best">76.42</td><td class="best">69.70</td><td class="best">75.02</td><td class="best">81.64</td>
+            <td class="best">78.38</td><td class="best">90.80</td><td class="best">76.83</td>
+          </tr>
+          <!-- Hellaswag train -->
+          <tr>
+            <td rowspan="2"><strong>Hellaswag</strong></td>
+            <td>Linear Probe</td>
+            <td>52.92</td><td>58.60</td><td>58.35</td><td>58.24</td>
+            <td>88.64</td><td>71.17</td><td>60.39</td><td>63.34</td><td>77.61</td>
+            <td>65.47</td><td>88.64</td><td>62.58</td>
+          </tr>
+          <tr class="tat-row">
+            <td><strong>TaT (Ours)</strong></td>
+            <td class="best">65.96</td><td class="best">74.92</td><td class="best">65.80</td><td class="best">64.22</td>
+            <td class="best">92.46</td><td>66.40</td><td>55.27</td><td>62.82</td><td class="best">95.75</td>
+            <td class="best">71.51</td><td class="best">92.46</td><td class="best">68.89</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="has-text-centered is-size-7" style="margin-top: 0.4rem; color:#777;">
+      <strong>Table 1</strong> (excerpt, Llama-3.1-8B). <span class="tat">TaT</span> consistently achieves higher OOD averages than linear probes,
+      demonstrating that displacement trajectories encode a transferable geometric signature of reasoning validity.
+    </p>
+
+    <hr class="section-divider">
+
+    <!-- ---- Generalization vs Adaptation ---- -->
+    <h3 class="title is-4" style="margin-top: 1.5rem;">Generalization vs. Adaptation (LoRA)</h3>
+    <div class="content has-text-justified">
+      <p>
+        To confirm that <span class="tat">TaT</span> captures a genuine geometric invariant rather
+        than simply a better task-specific model, we compare against LoRA (rank 16) fine-tuning,
+        both trained on ARC-Easy and evaluated on transfer tasks.
+        While LoRA achieves strong in-distribution accuracy (85.98%), its cross-task transfer is
+        inconsistent. <span class="tat">TaT</span> outperforms LoRA on 5 out of 6 transfer tasks.
+      </p>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column is-three-quarters">
+        <div class="table-container">
+          <table class="table is-bordered is-hoverable results-table" style="width:100%;">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>ARC-E<br><small>(ID)</small></th>
+                <th>StoryCloze</th>
+                <th>OpenQA</th>
+                <th>ARC-C</th>
+                <th>BoolQ</th>
+                <th>Hellaswag</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Linear Probe</td>
+                <td>83.99</td><td>69.62</td><td>80.95</td><td>75.55</td><td>58.82</td><td>71.07</td>
+              </tr>
+              <tr class="tat-row">
+                <td><strong>TaT (Ours)</strong></td>
+                <td class="best">89.10</td>
+                <td class="best">94.98</td>
+                <td>77.20</td>
+                <td>73.81</td>
+                <td class="best">78.56</td>
+                <td class="best">79.19</td>
+              </tr>
+              <tr>
+                <td>LoRA (rank 16)</td>
+                <td>85.98</td><td>83.76</td><td>52.40</td><td>61.26</td><td>79.97</td><td>75.86</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-centered is-size-7" style="color:#777;">
+          <strong>Table 2.</strong> <span class="tat">TaT</span> outperforms LoRA on 5 of 6 transfer tasks when both are trained on ARC-Easy.
+          LoRA modifies model weights and overfits to the source dataset's semantic distribution.
+        </p>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ---- Toxicity ---- -->
+    <h3 class="title is-4" style="margin-top: 1.5rem;">Toxicity Detection</h3>
+    <div class="content has-text-justified">
+      <p>
+        Toxicity detection challenges geometric analysis because labels are often defined by specific
+        lexical triggers. Safe models must distinguish between <em>toxic intent</em> and the benign
+        use of toxic vocabulary (e.g., quoting or educational contexts). We train on
+        <strong>RealToxicityPrompts</strong> and evaluate OOD on <strong>ToxiGen</strong>, a
+        dataset designed to be difficult for keyword-based classifiers.
+      </p>
+      <p>
+        Raw trajectory models (using activations directly) overfit to specific toxic vocabulary
+        of the training set. <span class="tat">TaT</span>&rsquo;s displacement-based approach
+        captures the <em>geometric character</em> of toxic generation regardless of the specific
+        words used, achieving the best OOD generalization across all tested architectures.
+      </p>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <div class="table-container">
+          <table class="table is-bordered is-hoverable results-table" style="width:100%;">
+            <thead>
+              <tr>
+                <th rowspan="2" style="vertical-align:middle;">Model</th>
+                <th rowspan="2" style="vertical-align:middle;">Method</th>
+                <th style="text-align:center; color:#e74c3c;">OOD</th>
+                <th colspan="2" style="text-align:center;">RealToxicityPrompts (ID)</th>
+              </tr>
+              <tr>
+                <th>ToxiGen</th>
+                <th>Standard</th>
+                <th>Challenging</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="3"><strong>Llama-3.1-8B</strong></td>
+                <td>Linear Probe</td>
+                <td>79.62</td><td>77.86</td><td>95.83</td>
+              </tr>
+              <tr>
+                <td>Trajectory (Raw)</td>
+                <td>81.99</td><td>82.16</td><td>97.91</td>
+              </tr>
+              <tr class="tat-row">
+                <td><strong>TaT (Disp.)</strong></td>
+                <td class="best">84.23</td><td>79.35</td><td>96.00</td>
+              </tr>
+              <tr>
+                <td rowspan="3"><strong>Qwen2.5-14B</strong></td>
+                <td>Linear Probe</td>
+                <td>72.58</td><td>76.46</td><td>95.16</td>
+              </tr>
+              <tr>
+                <td>Trajectory (Raw)</td>
+                <td>83.48</td><td class="best">87.56</td><td class="best">98.83</td>
+              </tr>
+              <tr class="tat-row">
+                <td><strong>TaT (Disp.)</strong></td>
+                <td class="best">82.28</td><td>85.16</td><td>98.58</td>
+              </tr>
+              <tr>
+                <td rowspan="3"><strong>Qwen3-30B MoE</strong></td>
+                <td>Linear Probe</td>
+                <td>75.16</td><td>77.87</td><td>94.50</td>
+              </tr>
+              <tr>
+                <td>Trajectory (Raw)</td>
+                <td>81.93</td><td class="best">86.57</td><td class="best">98.92</td>
+              </tr>
+              <tr class="tat-row">
+                <td><strong>TaT (Disp.)</strong></td>
+                <td class="best">82.34</td><td>79.43</td><td>87.66</td>
+              </tr>
+              <tr>
+                <td rowspan="3"><strong>Qwen3-32B</strong></td>
+                <td>Linear Probe</td>
+                <td>62.24</td><td>75.15</td><td>91.16</td>
+              </tr>
+              <tr>
+                <td>Trajectory (Raw)</td>
+                <td>80.22</td><td class="best">87.07</td><td class="best">98.83</td>
+              </tr>
+              <tr class="tat-row">
+                <td><strong>TaT (Disp.)</strong></td>
+                <td class="best">81.40</td><td>77.70</td><td>95.08</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-centered is-size-7" style="color:#777;">
+          <strong>Table 3.</strong> Toxicity detection. <span class="tat">TaT</span> (displacement)
+          achieves the best OOD generalization on ToxiGen across all four architectures.
+        </p>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ---- Ablations ---- -->
+    <h3 class="title is-4" style="margin-top: 1.5rem;">Ablations</h3>
+    <div class="content has-text-justified">
+      <p>
+        We examine whether (i) displacement is necessary compared to raw activation trajectories,
+        and (ii) the full token&times;layer grid is necessary relative to single-layer or
+        single-token variants.
+      </p>
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <h4 class="title is-6">Displacement vs. Raw Activations</h4>
+        <div class="table-container">
+          <table class="table is-bordered is-hoverable results-table" style="font-size:0.80rem;">
+            <thead>
+              <tr><th>Train</th><th>Method</th><th>Avg</th><th>ID Acc.</th><th>OOD Avg.</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="3">ARC-C</td>
+                <td>Linear Probe</td><td>71.03</td><td>75.32</td><td>70.49</td>
+              </tr>
+              <tr><td>TaT (Raw)</td><td>83.76</td><td>84.90</td><td>83.62</td></tr>
+              <tr class="tat-row"><td><strong>TaT (Disp.)</strong></td><td>79.63</td><td>82.17</td><td>79.31</td></tr>
+              <tr>
+                <td rowspan="3">OpenQA</td>
+                <td>Linear Probe</td><td>67.11</td><td>83.15</td><td>65.11</td>
+              </tr>
+              <tr><td>TaT (Raw)</td><td>71.78</td><td>87.20</td><td>69.85</td></tr>
+              <tr class="tat-row"><td><strong>TaT (Disp.)</strong></td><td class="best">78.38</td><td class="best">90.80</td><td class="best">76.83</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="is-size-7" style="color:#777;">
+          On OpenQA, which includes a factual context paragraph, raw activations overfit to
+          high-magnitude lexical content, whereas displacement trajectories remain robust.
+        </p>
+      </div>
+
+      <div class="column">
+        <h4 class="title is-6">Full Grid vs. Row/Column</h4>
+        <div class="table-container">
+          <table class="table is-bordered is-hoverable results-table" style="font-size:0.80rem;">
+            <thead>
+              <tr><th>Train</th><th>Method</th><th>Avg</th><th>ID Acc.</th><th>OOD Avg.</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="4">OpenQA</td>
+                <td>Linear Probe</td><td>67.11</td><td>83.15</td><td>65.11</td>
+              </tr>
+              <tr><td>TaT-Mid Layer</td><td>66.02</td><td>88.20</td><td>63.25</td></tr>
+              <tr><td>TaT-Final Token</td><td>71.55</td><td>87.40</td><td>69.57</td></tr>
+              <tr class="tat-row"><td><strong>TaT (Full)</strong></td><td class="best">78.38</td><td class="best">90.80</td><td class="best">76.83</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="is-size-7" style="color:#777;">
+          Collapsing the token&times;layer grid to a single row or column degrades OOD transfer;
+          the discriminative signal lies in the joint evolution across both depth and context.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ==================== RELATED WORK ==================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Related Work</h2>
+        <div class="content has-text-justified">
+          <p>
+            We situate <span class="tat">TaT</span> at the intersection of three lines of prior work.
+          </p>
+          <p>
+            <strong>Static linear representations.</strong>
+            The <em>Linear Representation Hypothesis</em>
+            <a href="https://arxiv.org/abs/2311.03658">(Park et al., 2023)</a> and downstream
+            probing / SAE approaches treat activations as static vectors at a fixed layer,
+            ignoring temporal evolution across depth.
+            <a href="https://arxiv.org/abs/2212.03827">Burns et al. (2022)</a> (CCS) take a
+            supervision-free angle, but similarly operate on static snapshots.
+          </p>
+          <p>
+            <strong>Representation engineering &amp; steering.</strong>
+            <a href="https://arxiv.org/abs/2310.01405">Zou et al. (2023)</a> showed that
+            &ldquo;concept vectors&rdquo; can steer model behavior, but static steering
+            fails unpredictably across tasks
+            <a href="https://aclanthology.org/2024.acl-long.826/">(Rimsky et al., 2024)</a>.
+            This is consistent with our finding that a purely static view misses the full
+            geometry of inference.
+          </p>
+          <p>
+            <strong>Transformers as dynamical systems.</strong>
+            The residual update h<sub>&#8467;+1</sub> = h<sub>&#8467;</sub> + f(h<sub>&#8467;</sub>)
+            is an Euler step for an ODE
+            <a href="https://arxiv.org/abs/1806.07366">(Chen et al., 2018)</a>.
+            <a href="https://arxiv.org/abs/2510.09782">Zhou et al. (2025)</a> identify
+            velocity-field signatures of logical validity, while
+            <a href="https://arxiv.org/abs/2507.21107">Manson (2025)</a> shows that semantic
+            concern induces measurable curvature. We demonstrate these kinematic signatures are
+            <em>learnable</em> in general real-world settings via an LSTM over displacement vectors.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== BIBTEX ==================== -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{damirchi2025truth,
+  title     = {Truth as a Trajectory: What Internal Representations Reveal About Large Language Model Reasoning},
+  author    = {Damirchi, Hamed and Meza De la Jara, Ignacio and Abbasnejad, Ehsan and Shamsi, Afshar and Zhang, Zhen and Shi, Javen},
+  booktitle = {Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics},
+  year      = {2025},
+}</code></pre>
+  </div>
+</section>
+
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="https://arxiv.org/pdf/2603.01326">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link external-link" href="https://github.com/hamed-d/truth-as-a-trajectory">
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            Website template borrowed from
+            <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

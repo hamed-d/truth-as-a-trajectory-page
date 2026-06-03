@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" font-family="'Noto Sans', sans-serif">
+  <!-- Background -->
+  <rect width="900" height="400" fill="#f8f9fa" rx="12"/>
+
+  <!-- Left panel label -->
+  <text x="225" y="28" text-anchor="middle" font-size="14" fill="#333" font-weight="bold">Incorrect Prediction</text>
+  <!-- Right panel label -->
+  <text x="675" y="28" text-anchor="middle" font-size="14" fill="#333" font-weight="bold">Correct Prediction</text>
+
+  <!-- LEFT panel background -->
+  <rect x="30" y="38" width="390" height="330" fill="white" rx="8" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Axis labels left -->
+  <text x="225" y="385" text-anchor="middle" font-size="11" fill="#777">UMAP Dimension 1 (a.u.)</text>
+  <text x="20" y="200" text-anchor="middle" font-size="11" fill="#777" transform="rotate(-90,20,200)">UMAP Dimension 2 (a.u.)</text>
+
+  <!-- RIGHT panel background -->
+  <rect x="480" y="38" width="390" height="330" fill="white" rx="8" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Axis labels right -->
+  <text x="675" y="385" text-anchor="middle" font-size="11" fill="#777">UMAP Dimension 1 (a.u.)</text>
+
+  <!-- ======================== LEFT: INCORRECT (RED) trajectories ======================== -->
+  <!-- Jagged, erratic trajectories in red -->
+  <g stroke="#e74c3c" stroke-width="1.5" fill="none" opacity="0.7">
+    <path d="M 80 280 C 110 220 160 310 200 190 C 240 80 270 260 310 150 C 330 100 340 200 370 120"/>
+    <path d="M 90 300 C 120 180 170 320 210 160 C 250 50 280 280 320 140 C 345 90 355 210 380 130"/>
+    <path d="M 70 260 C 100 300 150 100 190 280 C 230 150 260 300 300 120 C 330 60 345 220 375 110"/>
+    <path d="M 85 290 C 115 140 165 330 205 120 C 245 60 275 290 315 160 C 340 80 350 240 380 150"/>
+    <path d="M 75 270 C 105 200 155 290 195 140 C 235 70 265 270 305 130 C 335 70 345 230 375 140"/>
+  </g>
+
+  <!-- Layer waypoints on left (scattered/jagged) -->
+  <g fill="#e74c3c" opacity="0.85">
+    <circle cx="80" cy="280" r="4"/>
+    <circle cx="110" cy="220" r="3"/>
+    <circle cx="160" cy="310" r="3"/>
+    <circle cx="200" cy="190" r="3"/>
+    <circle cx="240" cy="80" r="3"/>
+    <circle cx="270" cy="260" r="3"/>
+    <circle cx="310" cy="150" r="3"/>
+    <circle cx="370" cy="120" r="4"/>
+  </g>
+
+  <!-- Layer labels left -->
+  <text x="72" y="274" font-size="10" fill="#c0392b" text-anchor="end">Start</text>
+  <text x="372" y="114" font-size="10" fill="#c0392b" text-anchor="start">End</text>
+  <text x="118" y="214" font-size="9" fill="#c0392b">L4</text>
+  <text x="168" y="304" font-size="9" fill="#c0392b">L8</text>
+  <text x="208" y="184" font-size="9" fill="#c0392b">L12</text>
+  <text x="248" y="74" font-size="9" fill="#c0392b">L16</text>
+  <text x="278" y="254" font-size="9" fill="#c0392b">L20</text>
+  <text x="318" y="144" font-size="9" fill="#c0392b">L24</text>
+
+  <!-- ======================== RIGHT: CORRECT (GREEN) trajectories ======================== -->
+  <!-- Smooth, coherent trajectories in green -->
+  <g stroke="#27ae60" stroke-width="1.5" fill="none" opacity="0.7">
+    <path d="M 530 280 C 560 260 590 240 620 220 C 650 200 680 175 710 155 C 740 135 760 120 800 105"/>
+    <path d="M 535 295 C 565 272 595 252 625 232 C 655 212 685 188 715 168 C 745 148 765 132 805 117"/>
+    <path d="M 525 265 C 555 248 585 228 615 208 C 645 188 675 162 705 142 C 735 122 755 108 795 93"/>
+    <path d="M 540 310 C 570 285 600 265 630 245 C 660 225 690 200 720 180 C 750 160 770 145 810 130"/>
+    <path d="M 520 275 C 550 255 580 235 610 215 C 640 195 670 170 700 150 C 730 130 750 115 790 100"/>
+  </g>
+
+  <!-- Layer waypoints on right (smooth progression) -->
+  <g fill="#27ae60" opacity="0.85">
+    <circle cx="530" cy="280" r="4"/>
+    <circle cx="570" cy="258" r="3"/>
+    <circle cx="610" cy="236" r="3"/>
+    <circle cx="650" cy="210" r="3"/>
+    <circle cx="690" cy="182" r="3"/>
+    <circle cx="730" cy="155" r="3"/>
+    <circle cx="770" cy="130" r="3"/>
+    <circle cx="810" cy="108" r="4"/>
+  </g>
+
+  <!-- Layer labels right -->
+  <text x="522" y="274" font-size="10" fill="#1a7a43" text-anchor="end">Start</text>
+  <text x="812" y="102" font-size="10" fill="#1a7a43" text-anchor="start">End</text>
+  <text x="578" y="252" font-size="9" fill="#1a7a43">L4</text>
+  <text x="618" y="230" font-size="9" fill="#1a7a43">L8</text>
+  <text x="658" y="204" font-size="9" fill="#1a7a43">L12</text>
+  <text x="698" y="176" font-size="9" fill="#1a7a43">L16</text>
+  <text x="738" y="149" font-size="9" fill="#1a7a43">L20</text>
+  <text x="778" y="124" font-size="9" fill="#1a7a43">L24</text>
+
+  <!-- Divider line -->
+  <line x1="450" y1="30" x2="450" y2="390" stroke="#ddd" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Legend -->
+  <g transform="translate(340, 360)">
+    <line x1="0" y1="0" x2="20" y2="0" stroke="#e74c3c" stroke-width="2"/>
+    <circle cx="10" cy="0" r="3" fill="#e74c3c"/>
+    <text x="25" y="4" font-size="11" fill="#555">Incorrect</text>
+    <line x1="105" y1="0" x2="125" y2="0" stroke="#27ae60" stroke-width="2"/>
+    <circle cx="115" cy="0" r="3" fill="#27ae60"/>
+    <text x="130" y="4" font-size="11" fill="#555">Correct</text>
+  </g>
+</svg>
