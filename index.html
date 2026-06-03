@@ -136,16 +136,17 @@
     <div class="hero-body">
       <figure class="image">
         <img src="./static/images/teaser.svg"
-             alt="TaT teaser: UMAP trajectories of correct (green, smooth) vs incorrect (red, jagged) LLM predictions."
+             alt="Figure 1: Layerwise hidden states plotted as trajectories in activation space. Correct generations follow smoother paths while incorrect ones exhibit sharp deviations."
              style="border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);">
       </figure>
       <h2 class="subtitle has-text-centered" style="margin-top: 1.2rem;">
-        <span class="tat">TaT</span> reveals structure beyond static embeddings.
-        Layerwise hidden states plotted as trajectories in activation space show that
-        <strong style="color:#27ae60;">correct generations</strong> follow smoother paths,
+        Trajectories reveal structure beyond static embeddings.
+        We plot layerwise hidden states as trajectories in activation space.
+        <strong style="color:#27ae60;">Correct generations</strong> follow smoother paths,
         while <strong style="color:#e74c3c;">incorrect ones</strong> exhibit sharp deviations.
-        Modeling entire trajectories, rather than isolated layer states,
-        distinguishes valid from spurious reasoning.
+        Although the supervised projection amplifies separation, the geometry suggests that
+        modeling entire trajectories, rather than isolated states, can help distinguish
+        valid from spurious reasoning.
       </h2>
     </div>
   </div>
